@@ -10,23 +10,39 @@ st.caption("Compare two datasets, find the discrepancies, and get an explained r
 
 col1, col2 = st.columns(2)
 with col1:
-    sales_upload = st.file_uploader("Sales export (CSV)", type="csv")
+    left_upload = st.file_uploader("First export (CSV)", type="csv")
 with col2:
-    warehouse_upload = st.file_uploader("Warehouse export (CSV)", type="csv")
+    right_upload = st.file_uploader("Second export (CSV)", type="csv")
+
+if left_upload and right_upload:
+    left = pd.read_csv(left_upload)
+    right = pd.read_csv(right_upload)
+else:
+    st.info("No files uploaded, using the built-in sample data.")
+    left = pd.read_csv("data/sales_system.csv")
+    right = pd.read_csv("data/warehouse.csv")
+
+common_cols = [c for c in left.columns if c in right.columns]
+
+if not common_cols:
+    st.error("The two files share no columns, so they can't be reconciled. Check that both have the same headers.")
+    st.stop()
+
+key_default = next((i for i, c in enumerate(common_cols) if "id" in c.lower()), 0)
+key = st.selectbox("Key column (identifies the same record in both files)", common_cols, index=key_default)
+
+compare_options = [c for c in common_cols if c != key]
+compare_cols = st.multiselect("Columns to compare", compare_options, default=compare_options)
 
 if st.button("Reconcile", type="primary"):
-    if sales_upload and warehouse_upload:
-        sales = pd.read_csv(sales_upload)
-        warehouse = pd.read_csv(warehouse_upload)
-    else:
-        st.info("No files uploaded, using the built-in sample data.")
-        sales = pd.read_csv("data/sales_system.csv")
-        warehouse = pd.read_csv("data/warehouse.csv")
+    if not compare_cols:
+        st.warning("Pick at least one column to compare.")
+        st.stop()
 
-    findings = reconcile(sales, warehouse)
+    findings = reconcile(left, right, key, compare_cols)
 
     c1, c2, c3 = st.columns(3)
-    c1.metric("Missing records", len(findings["missing_in_warehouse"]) + len(findings["missing_in_sales"]))
+    c1.metric("Missing records", len(findings["missing_in_left"]) + len(findings["missing_in_right"]))
     c2.metric("Duplicates", len(findings["duplicates"]))
     c3.metric("Field mismatches", len(findings["field_mismatches"]))
 
