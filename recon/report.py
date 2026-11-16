@@ -1,6 +1,6 @@
 import json
 
-from llm import get_llm
+from recon.llm import get_llm
 
 SYSTEM_PROMPT = """You are a data reconciliation analyst. You are given the results of an
 automated comparison between two dataset exports. The findings are already computed and

@@ -1,8 +1,8 @@
 import pandas as pd
 import streamlit as st
 
-from reconcile import reconcile
-from report import narrate
+from recon.reconcile import reconcile
+from recon.report import narrate
 
 st.set_page_config(page_title="Reconciliation Agent", layout="wide")
 st.title("Reconciliation Agent")
