@@ -1,8 +1,16 @@
+import os
+
 import pandas as pd
 import streamlit as st
 
 from recon.reconcile import reconcile
 from recon.report import narrate
+
+try:
+    for key, value in st.secrets.items():
+        os.environ.setdefault(key, str(value))
+except Exception:
+    pass
 
 st.set_page_config(page_title="Reconciliation Agent", layout="wide")
 st.title("Reconciliation Agent")
